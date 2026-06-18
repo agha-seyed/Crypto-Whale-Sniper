@@ -3,6 +3,8 @@ from app.config import settings
 from app.models.base import Base
 # Import all models here so metadata is collected
 from app.models.user import User
+from app.models.trade import TradeLog
+from app.models.settings import WalletSettings
 
 # ساخت موتور دیتابیس ناهمگام
 engine = create_async_engine(

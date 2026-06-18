@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from app.config import settings
-from app.bot.handlers import user_menu, payment
+from app.bot.handlers import user_menu, payment, wallet_handler, settings_handler
 
 # تنظیم لاگر برای مشاهده خطاهای احتمالی
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +14,15 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode="MarkdownV2"))
 dp = Dispatcher()
 
+from app.bot.middlewares.throttling import ThrottlingMiddleware
+# ثبت میدلور ضد اسپم
+dp.message.middleware(ThrottlingMiddleware())
+
 # اضافه کردن هندلرها به دیسپچر
 dp.include_router(user_menu.router)
 dp.include_router(payment.router)
+dp.include_router(wallet_handler.router)
+dp.include_router(settings_handler.router)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

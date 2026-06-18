@@ -55,15 +55,16 @@ async def process_successful_payment(message: Message):
             result = await session.execute(select(User).where(User.telegram_id == user_id))
             user = result.scalar_one_or_none()
             
-            if user:
-                user.is_vip = True
-                # تاریخ انقضا 30 روز دیگر
-                user.vip_until = datetime.utcnow() + timedelta(days=30)
-                await session.commit()
+            if not user:
+                user = User(telegram_id=user_id)
+                session.add(user)
                 
-                await message.answer("🎉 پرداخت شما با موفقیت انجام شد! حساب شما به VIP ارتقا یافت. 🌟")
-            else:
-                await message.answer("⚠️ پرداخت تایید شد اما اطلاعات کاربری شما در دیتابیس یافت نشد. به پشتیبانی پیام دهید.")
+            user.is_vip = True
+            # تاریخ انقضا 30 روز دیگر
+            user.vip_until = datetime.utcnow() + timedelta(days=30)
+            await session.commit()
+            
+            await message.answer("🎉 پرداخت شما با موفقیت انجام شد! حساب شما به VIP ارتقا یافت. 🌟")
     except Exception as e:
         logger.error(f"خطا در بروزرسانی دیتابیس پس از پرداخت: {e}")
         await message.answer("⚠️ خطای سیستمی رخ داد. لطفاً به پشتیبانی پیام دهید.")

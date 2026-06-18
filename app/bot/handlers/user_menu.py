@@ -3,6 +3,16 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 import textwrap
 
+from sqlalchemy import select
+from app.core.db import AsyncSessionLocal
+from app.models.user import User
+
+async def is_user_vip(telegram_id: int) -> bool:
+    async with AsyncSessionLocal() as session:
+        query = select(User).where(User.telegram_id == telegram_id)
+        user = (await session.execute(query)).scalars().first()
+        return bool(user and user.is_vip)
+
 router = Router()
 
 def get_home_keyboard() -> InlineKeyboardMarkup:
@@ -52,6 +62,10 @@ async def cmd_start(message: Message):
 @router.callback_query(F.data == "menu_sniper")
 async def process_sniper_menu(callback: CallbackQuery):
     """هندلر کلیک روی دکمه اسنایپر"""
+    if not await is_user_vip(callback.from_user.id):
+        await callback.answer("❌ دسترسی محدود! این بخش فقط برای کاربران VIP فعال است.", show_alert=True)
+        return
+
     text = textwrap.dedent("""\
         🎯 *بخش اسنایپر و خرید سریع*
         
@@ -59,6 +73,22 @@ async def process_sniper_menu(callback: CallbackQuery):
         `0x...`
         
         _کارمزد سیستم در این بخش 0\\.5% از حجم معامله می‌باشد\\._
+    """)
+    await callback.message.edit_text(text=text, reply_markup=InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="🔙 بازگشت", callback_data="menu_home")]]
+    ))
+
+@router.callback_query(F.data == "menu_whale")
+async def process_whale_menu(callback: CallbackQuery):
+    """هندلر کلیک روی دکمه ردیاب نهنگ"""
+    if not await is_user_vip(callback.from_user.id):
+        await callback.answer("❌ دسترسی محدود! این بخش فقط برای کاربران VIP فعال است.", show_alert=True)
+        return
+        
+    text = textwrap.dedent("""\
+        🐳 *ردیاب نهنگ‌ها*
+        
+        شما به سیستم ردیابی متصل هستید. برای تنظیم توکن‌های Auto-Snipe به منوی تنظیمات مراجعه کنید.
     """)
     await callback.message.edit_text(text=text, reply_markup=InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text="🔙 بازگشت", callback_data="menu_home")]]

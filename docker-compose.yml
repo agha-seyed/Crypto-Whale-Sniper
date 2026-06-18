@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: crypto_whale_db
+    environment:
+      POSTGRES_USER: bot_user
+      POSTGRES_PASSWORD: bot_password
+      POSTGRES_DB: crypto_whale_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: crypto_whale_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  bot:
+    build: .
+    container_name: crypto_whale_bot
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
+  redis_data:

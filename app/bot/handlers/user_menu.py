@@ -18,7 +18,8 @@ def get_home_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="💼 کیف پول من", callback_data="menu_wallet")
             ],
             [
-                InlineKeyboardButton(text="⚙️ تنظیمات و کارمزدها", callback_data="menu_settings")
+                InlineKeyboardButton(text="⚙️ تنظیمات و کارمزدها", callback_data="menu_settings"),
+                InlineKeyboardButton(text="ℹ️ درباره ربات (About)", callback_data="menu_about")
             ]
         ]
     )
@@ -62,6 +63,37 @@ async def process_sniper_menu(callback: CallbackQuery):
     await callback.message.edit_text(text=text, reply_markup=InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text="🔙 بازگشت", callback_data="menu_home")]]
     ))
+
+@router.callback_query(F.data == "menu_about")
+async def process_about_menu(callback: CallbackQuery, bot):
+    """هندلر کلیک روی دکمه درباره ما با ۳ زبان"""
+    from aiogram.types import FSInputFile
+    import os
+    
+    text = textwrap.dedent("""\
+        🤖 **Crypto Whale Sniper & Tracker**
+        > _Developed by: Wirangar Group (گروه ویرانگران)_
+        
+        🇮🇷 **فارسی:**
+        این سیستم قدرتمند توسط **گروه برنامه‌نویسی، هوش مصنوعی و رباتیک ویرانگر** طراحی شده است. از امکانات آن می‌توان به اسنایپر چندشبکه‌ای (Multi-chain)، ردیابی پیشرفته در ممپول، و امنیت سطح نظامی (رمزنگاری کلیدهای خصوصی) اشاره کرد.
+        
+        🇬🇧 **English:**
+        This powerful system is designed by the **Wirangar Group**. Features include multi-chain sniping, advanced mempool tracking, and military-grade private key encryption.
+        
+        🇮🇹 **Italiano:**
+        Questo potente sistema è progettato dal **Gruppo Wirangar**. Le caratteristiche includono il cecchinaggio multi-catena, il tracciamento avanzato della mempool e la crittografia di livello militare.
+    """)
+    
+    photo_path = "assets/logo.jpg"
+    
+    if os.path.exists(photo_path):
+        photo = FSInputFile(photo_path)
+        await callback.message.answer_photo(photo=photo, caption=text, parse_mode="Markdown")
+        await callback.answer()
+    else:
+        await callback.message.edit_text(text=text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="🔙 بازگشت", callback_data="menu_home")]]
+        ))
 
 @router.callback_query(F.data == "menu_vip")
 async def process_vip_menu(callback: CallbackQuery):

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Boolean
+from sqlalchemy import Column, BigInteger, String, Boolean, DateTime
 from app.models.base import Base
 
 class User(Base):
@@ -10,7 +10,7 @@ class User(Base):
     
     # اطلاعات مربوط به سیستم VIP
     is_vip = Column(Boolean, default=False)
-    vip_until = Column(String, nullable=True) # برای ذخیره تاریخ انقضا
+    vip_until = Column(DateTime, nullable=True) # برای ذخیره تاریخ انقضا
     
     # اطلاعات کیف پول برای اسنایپر
     wallet_address = Column(String, nullable=True)
